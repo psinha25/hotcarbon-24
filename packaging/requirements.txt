@@ -1,0 +1,12 @@
+transformers
+sentencepiece
+accelerate
+torch
+torchvision
+torchaudio
+pandas
+diffusers
+invisible_watermark
+safetensors
+torchaudio
+datasets
