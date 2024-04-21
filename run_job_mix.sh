@@ -125,8 +125,6 @@ compute_stats() {
     local mode_arg=$2
     local result_dir_arg=$3
 
-    echo "WARNING: ${pkl_files_arg[@]}"
-
     cmd="python3 src/stats.py \
         --mode ${mode_arg} \
         --result_dir ${result_dir_arg} \
@@ -234,7 +232,16 @@ run_expr() {
     local procs=()
     local prev=()
 
+    # Wait to be told which GPU and mechanism to run on
     read_fifo ${fifo_pipe}
+    
+    # Launch metric collection
+    pwr_cmd="nvidia-smi --query-gpu=timestamp,name,pstate,temperature.gpu,memory.total,memory.free,memory.used,power.draw --format=csv -l 1 > ${result_dir}/pwr.csv &"
+    echo "${pwr_cmd}"
+    eval $pwr_cmd
+    pwr_pid=$!
+
+    # Launch processes
     while [[ ${mode_to_run} != "stop" ]]; do
         # We could enable persistence mode here -- not sure given we are doing power readings
         #  ${SUDO} nvidia-smi -i ${device_id_to_run} -pm ENABLED
@@ -261,6 +268,9 @@ run_expr() {
 
     # Make sure to stop all inferences
     safe_clean_gpu prev[@] ${prev_mode_run} ${prev_device_id_run}
+
+    # Stop power metrics collection
+    kill $pwr_pid
 
     # Wait for the process to exit and get stats pkl file
     pkl_files=()

@@ -283,6 +283,7 @@ function divide_and_round() {
     printf "%.2f\n" "$result"
 }
 
+# Altered from TieBreaker to remove model-type
 function get_result_dir() {
     declare -a models_arr=("${!1}")
     declare -a batch_sizes_arr=("${!2}")
