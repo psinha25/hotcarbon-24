@@ -20,15 +20,18 @@ export VENV=~/virtual/hotcarbon
 ./run.sh --help
 
 # Example
-./run.sh --device-type 4090 --device-id 1 --duration 20 diffusion-1 whisper-1
+./run.sh --device-type a100 --device-id 1 --modes tm --duration 20 diffusion-1 whisper-1
 ```
 
 `run.sh` takes a few arguments:
 - `device-type`: 4090, a100, a6000
 - `device-id`: 0 - 5
+- `modes`: tm (time multipliexing), mps-uncap (MPS)
 - `duration`: in seconds, how long experiments runs after models are loaded
 
-The final arguments are the set of models and batch sizes you want to run on a single GPU. For example `diffusion-1` indicates you want to run the diffusion model with a batch size of 1. For now, only batch size 1 is supported. We support four models currently. The names of you pass should be the following:
+The final arguments are the set of models and batch sizes you want to run on a single GPU. In the example above, we want to co-locatea diffusion model and whisper speech recognition model on the same A100 GPU, each with a batch size 1, using time multiplexing. The model format is <model_name>-<batch_size> (e.g., diffusion-1). 
+
+For now, only batch size 1 is supported. We support four models currently. The names of you pass should be the following:
 
 - diffusion
 - whisper

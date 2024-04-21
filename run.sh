@@ -25,8 +25,8 @@ print_help() {
     log -e "\n"
 
     log "Examples:"
-    log " $0 --device-type v100 --device-id 0 --duration 10 diffusion-1"
-    log " $0 --device-type v100 --device-id 1 --duration 20 diffusion-1 whisper-1"
+    log " $0 --device-type 4090 --device-id 0 -modes tm --duration 10 diffusion-1"
+    log " $0 --device-type a100 --device-id 1 --modes tm --duration 20 diffusion-1 whisper-1"
     log -e "\n"
 
     echo "NOTE: Only support closed loop and TM right now. MPS support in progress"
