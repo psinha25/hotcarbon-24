@@ -9,7 +9,7 @@ print_help() {
     echo -e "\n"
 
     echo "Example"
-    echo " $0 --device-type a100 --load 1 '[{\"model\": \"diffusion\", \"batch-size\": 2}, {\"model\": \"whisper\", \"batch-size\": 4}]'"
+    echo " $0 --device-type a100 --run-id <uuid> '[{\"model\": \"diffusion\", \"batch-size\": 2}, {\"model\": \"whisper\", \"batch-size\": 4}]'"
     echo -e "\n"
 
     echo "NOTE: Only support closed loop and TM right now. MPS support in progress"
@@ -120,6 +120,21 @@ read_fifo() {
     device_ids_ran+=(${device_id_to_run})
 }
 
+compute_stats() {
+    declare -a pkl_files_arg=("${!1}")
+    local mode_arg=$2
+    local result_dir_arg=$3
+
+    echo "WARNING: ${pkl_files_arg[@]}"
+
+    cmd="python3 src/stats.py \
+        --mode ${mode_arg} \
+        --result_dir ${result_dir_arg} \
+        ${pkl_files_arg[@]}"
+    eval $cmd
+    echo "Results stored in: ${result_dir_arg}"
+}
+
 start_expr() {
     local mode_arg=$1
     local device_id_arg=$2
@@ -155,7 +170,7 @@ start_expr() {
     done
 
     # Check if processes are alive
-    readarray -t forked_pids < <(ps -eaf | grep batched_inference_executor.py |
+    readarray -t forked_pids < <(ps -eaf | grep executor.py |
         grep ${uuid_arg} | grep -v grep |
         awk '{for (i=1; i<=NF; i++) if ($i == "--tid") print $(i+1),$0}' |
         sort -n | cut -d' ' -f2- | awk '{print $2}')
@@ -175,7 +190,7 @@ start_expr() {
     echo ${forked_pids[@]}
     for pid in "${forked_pids[@]}"
     do
-        load_ctr=1000
+        load_ctr=10000
         while [[ ${load_ctr} -gt 0 ]];
         do
             if [[ -f /tmp/${pid} ]]; then
@@ -247,11 +262,21 @@ run_expr() {
     # Make sure to stop all inferences
     safe_clean_gpu prev[@] ${prev_mode_run} ${prev_device_id_run}
 
-    # Wait for the process to exit
+    # Wait for the process to exit and get stats pkl file
+    pkl_files=()
     for pid in "${procs[@]}"
     do
         while taskset -c 0 kill -0 ${pid} >/dev/null 2>&1; do sleep 1; done
+        pkl_file="/tmp/${pid}.pkl"
+        pkl_files+=(${pkl_file})
     done
+
+    mode_run=${prev_mode_run}
+    if [[ ${#pkl_files[@]} -gt 0 ]]; then
+        compute_stats pkl_files[@] ${mode_run} ${result_dir}
+    else
+        echo "No modes were run, so not computing stats"
+    fi
 
 }   
 
@@ -262,3 +287,6 @@ get_input $@
 validate_input
 setup_expr
 run_expr
+
+# echo '{"mode": "tm", "device-id": 0}' > /tmp/0
+# echo '{"mode": "stop", "device-id": 0}' > /tmp/0

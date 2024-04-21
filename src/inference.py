@@ -1,4 +1,6 @@
 import random
+import os
+import pathlib
 from abc import ABC, abstractmethod
 import torch
 import torchaudio                       # type: ignore
@@ -65,6 +67,7 @@ class StableDiffusion(Inference):
     
     def infer(self):
         images = self._model(prompt=self._input_prompts).images
+        print('finished an inference!')
         return len(images)
 
 class BertLarge(Inference):
@@ -175,7 +178,8 @@ class GPT(Inference):
 class Whisper(Inference):
     def __init__(self, model_name, device_id, batch_size):
         super().__init__(model_name, device_id, batch_size)
-        self.input_path = "./data/speech.wav"
+        curr_path = pathlib.Path(__file__).parent.resolve()
+        self.input_path = os.path.join(curr_path, "data/speech.wav")
         self.model_path = "openai/whisper-small"
 
     def get_id(self):

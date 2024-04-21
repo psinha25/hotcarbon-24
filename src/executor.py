@@ -8,7 +8,7 @@ import os
 from inference import get_inference_object # type: ignore
 
 
-WARMUP_REQS = 5
+WARMUP_REQS = 2
 LARGE_NUM_REQS = 100000
 
 class InferenceExecutor:
