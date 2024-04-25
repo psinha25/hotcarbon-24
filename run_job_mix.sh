@@ -236,7 +236,7 @@ run_expr() {
     read_fifo ${fifo_pipe}
     
     # Launch metric collection
-    pwr_cmd="nvidia-smi --query-gpu=timestamp,name,pstate,temperature.gpu,memory.total,memory.free,memory.used,power.draw --format=csv -l 1 > ${result_dir}/pwr.csv &"
+    pwr_cmd="nvidia-smi --query-gpu=timestamp,name,pstate,temperature.gpu,memory.total,memory.free,memory.used,utilization.memory,utilization.gpu,power.draw --format=csv -l 1 > ${result_dir}/pwr.csv &"
     echo "${pwr_cmd}"
     eval $pwr_cmd
     pwr_pid=$!
