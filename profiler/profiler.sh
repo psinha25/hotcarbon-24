@@ -23,13 +23,13 @@ run_decorated_inference() {
     
     # echo $command
     eval "$command"
-    ncu_pid=$
+    ncu_pid=$!
     sleep 10
 
     readarray -t forked_pids < <(ps -eaf | grep executor.py | grep -v "${NCU}" | grep -v "nsys" | grep -v "nsight" | grep -v grep | awk '{print $2}')
     if [[ ${#forked_pids[@]} != 1 ]]; then
         echo "Expected 1 executor.py process! Seen != 1..."
-        echo "Inspect using command: ' ps -eaf | grep executor.py | grep -v "${NCU}" | grep -v "nsys" | grep -v grep'"
+        echo "Inspect using command: ' ps -eaf | grep executor.py | grep -v "${NCU}" | grep -v "nsys" | grep -v "nsight" | grep -v grep'"
         return 1
     fi
 
