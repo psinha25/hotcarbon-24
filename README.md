@@ -8,6 +8,11 @@ source ~/virtual/hotcarbon/bin/activate
 pip3 install -r packaging/requirements.txt
 ```
 
+Also make sure ffmpeg is installed in Linux. `torchaudio.load()`, used by `whisper` in `inference.py` depends on linux ffmpeg.
+```
+sudo apt install ffmpeg
+```
+
 ## How to Run Experiments
 
 ```
