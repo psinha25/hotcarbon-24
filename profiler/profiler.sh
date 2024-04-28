@@ -3,7 +3,7 @@
 source ../helper.sh
 
 PYTHON=${VENV}/bin/python3
-NCU=/usr/local/NVIDIA-Nsight-Compute/ncu
+NCU=/usr/local/NVIDIA-Nsight-Compute-2024.1/target/linux-desktop-glibc_2_11_3-x64
 
 run_decorated_inference() {
     pre=$1
@@ -83,7 +83,7 @@ profile_model() {
     mkdir -p ${result_dir}
 
     echo 'NCU CSV...'
-    run_decorated_inference "${SUDO} -E ${NCU} -f --csv --set detailed --nvtx --nvtx-include \"start/\"" "> ${result_dir}/batchsize_${batch}_output_ncu.csv"
+    run_decorated_inference "${SUDO} -E ${NCU}/ncu -f --csv --set detailed --nvtx --nvtx-include \"start/\"" "> ${result_dir}/batchsize_${batch}_output_ncu.csv"
 
     echo 'NSYS Profile...'
     run_decorated_inference "${SUDO} -E nsys profile --show-output true --sample none --trace cuda,nvtx,osrt,cudnn,cublas --stats=true --force-overwrite true --stop-on-exit true --wait=all -o ${result_dir}/batchsize_${batch}_output_nsys --capture-range=cudaProfilerApi --cudabacktrace=true --gpu-metrics-device=0" 
