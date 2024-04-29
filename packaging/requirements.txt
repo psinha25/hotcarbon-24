@@ -10,3 +10,5 @@ invisible_watermark
 safetensors
 torchaudio
 datasets
+matplotlib
+seaborn
