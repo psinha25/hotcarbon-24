@@ -73,7 +73,7 @@ def aggregate_results():
     
 def construct_df(dataset: Dataset):
 
-    df_rows = [] # mix, device, sharing_style, num_inferences, latency, energy, embodied carbon, cost
+    df_rows = [] # mix, device, sharing_style, num_inferences, latency, energy, embodied carbon, cost, GPU hours
 
     for gpu in ['4090', 'a100']:
         device_rows = dataset.filter(lambda x: x['device'] == '4090')
@@ -94,7 +94,8 @@ def construct_df(dataset: Dataset):
                               300, 
                               row['energy'], 
                               (COST_CARBON_DICT[gpu][1] * 60 * 5) / GPU_LIFETIME,  
-                              (COST_CARBON_DICT[gpu][0] * 60 * 5) / 3600]
+                              (COST_CARBON_DICT[gpu][0] * 60 * 5) / 3600,
+                              5 / 60]
 
                 
                 
@@ -103,21 +104,23 @@ def construct_df(dataset: Dataset):
                 energy = 0
                 embodied_carbons = []
                 costs = []
+                latencies = []
                 for i, job in enumerate(jobs):
                     single_model_row = device_rows.filter(lambda y: y['mix'] == job)[0]
                     curr_latency = single_model_row['latency_stats'][3][0] / 1000
                     energy += single_model_row['energy'] / (single_model_row['throughput'][0] * 60 * 5) * num_reqs_per_job[i]
                     embodied_carbons.append((COST_CARBON_DICT[gpu][1] * curr_latency * num_reqs_per_job[i]) / GPU_LIFETIME)
                     costs.append((COST_CARBON_DICT[gpu][0] * curr_latency * num_reqs_per_job[i]) / 3600)
+                    latencies.append(curr_latency * num_reqs_per_job[i])
 
                     if curr_latency * num_reqs_per_job[i] > latency:
                         latency = curr_latency * num_reqs_per_job[i]
-                multi_row = ["\n".join(jobs), gpu, 'GPU/model', num_reqs, latency, energy, sum(embodied_carbons), sum(costs)]
+                multi_row = ["\n".join(jobs), gpu, 'GPU/model', num_reqs, latency, energy, sum(embodied_carbons), sum(costs), sum(latencies) / 3600]
                 
                 df_rows.append(single_row)
                 df_rows.append(multi_row)
         
-    df = pd.DataFrame(df_rows, columns=['mix', 'device', 'sharing_style', 'num_inferences', 'latency', 'energy', 'embodied_carbon', 'cost'])
+    df = pd.DataFrame(df_rows, columns=['mix', 'device', 'sharing_style', 'num_inferences', 'latency', 'energy', 'embodied_carbon', 'cost', 'gpu_hours'])
     return df
 
 def plot_grid(df: pd.DataFrame):
@@ -133,9 +136,9 @@ def plot_grid(df: pd.DataFrame):
         p1.set_ylabel('Latency (s)')
 
         # Cost plot
-        p2 = sns.barplot(data=df_device, x='mix', y='cost', hue='sharing_style', ax=axs[0, 1])
+        p2 = sns.barplot(data=df_device, x='mix', y='gpu_hours', hue='sharing_style', ax=axs[0, 1])
         p2.set_xlabel('')
-        p2.set_ylabel('Cost ($)')
+        p2.set_ylabel('GPU Hours')
 
         # Operational Energy Plot
         p3 = sns.barplot(data=df_device, x='mix', y='energy', hue='sharing_style', ax=axs[1, 0])
@@ -147,7 +150,7 @@ def plot_grid(df: pd.DataFrame):
         p4.set_xlabel('')
         p4.set_ylabel('Embodied Carbon (g CO2)')
 
-        plt.savefig(f'./plots/{device}.png', bbox_inches='tight', dpi=300)
+        plt.savefig(f'./plots/{device}.pdf', bbox_inches='tight', dpi=400, format='pdf')
         plt.close()
     
 
