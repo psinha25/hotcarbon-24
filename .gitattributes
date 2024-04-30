@@ -1,0 +1,2 @@
+profiler/data/a100/diffusion/*output_ncu.csv filter=lfs diff=lfs merge=lfs -text
+profiler/data/a100/diffusion-2/*output_ncu.csv filter=lfs diff=lfs merge=lfs -text
