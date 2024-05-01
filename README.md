@@ -59,3 +59,5 @@ If the `error_code=0`, everything ran successfully. You can check the logs at th
 - `total_99.csv` - p99 latency of a single request
 - `total_100.csv` - max latency of a single request
 - `pwr.csv` - power data we collect over course of experiment
+
+test
